@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Battery Waster</string>
+    <string name="app_version_name">1.0</string>
+    <string name="number_of_threads">using %d threads</string>
+    <string name="battery_waster_keep_screen_on">Keep screen on</string>
+    <string name="battery_waster_waste_on_off">Waste some energy</string>
+    <string name="battery_waster_start">Start</string>
+    <string name="battery_waster_stop">Stop</string>
+    <string name="level">level</string>
+    <string name="please_turn_gps_on">Please turn on GPS to use more battery</string>
+    <string name="thank_you_gps">Thanks you for turning GPS on! It does warm my heart.</string>
+
+</resources>
