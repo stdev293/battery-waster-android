@@ -17,6 +17,7 @@ package com.stdev293.batterywasterdemo;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.stdev293.batterywasterdemo.R;
 
@@ -25,22 +26,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 import android.widget.TextView;
 
 /**
- * Uses battery through CPU and GPS
- *
+ * Main (and only) activity of this application.
+ * Uses battery through CPU (multi-threaded), GPU, sensors and GPS
  */
-public class BatteryWasterActivity extends Activity {
+public class BatteryWasterActivity extends Activity implements SensorEventListener {
 	private static final int NUMBER_OF_THREADS = 8;
 	
 	// --------------------------------------------------------------------------------------------
@@ -54,6 +60,8 @@ public class BatteryWasterActivity extends Activity {
     private ArrayList<SpinThread> mThreads;
     private LocationManager mLocationManager;
     private LocationCallbackHandler mLocationListener;
+    private SensorManager mSensorManager;
+    private List<Sensor> mSensors;
     private boolean mWasting;
 
 	private java.text.DateFormat mDateFormat;
@@ -75,15 +83,27 @@ public class BatteryWasterActivity extends Activity {
         }
     };
 
-    private OnCheckedChangeListener mOnClickListener = new OnCheckedChangeListener() {
+    private OnCheckedChangeListener mOnCheckedChangedListener = new OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         	switch (buttonView.getId()) {
         	case R.id.switch1:
 	            if (isChecked) {
-	                startWasting();
+	            	buttonView.setEnabled(false); // disable while starting
+	            	buttonView.post(new Runnable() {
+						@Override
+						public void run() {
+			                startWasting();
+						}
+	            	});
 	            } else {
-	                stopWasting();
+	            	buttonView.setEnabled(false); // disable while stopping
+	            	buttonView.post(new Runnable() {
+						@Override
+						public void run() {
+							stopWasting();
+						}
+	            	});
 	            }
 	            break;
         	case R.id.switch2:
@@ -173,8 +193,11 @@ public class BatteryWasterActivity extends Activity {
         mThreads = new ArrayList<SpinThread>();
         mWasting = false;
 
-        mOnOffSwitch.setOnCheckedChangeListener(mOnClickListener);
-        mScreenWakeLockSwitch.setOnCheckedChangeListener(mOnClickListener);
+        mOnOffSwitch.setOnCheckedChangeListener(mOnCheckedChangedListener);
+        mScreenWakeLockSwitch.setOnCheckedChangeListener(mOnCheckedChangedListener);
+        
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mSensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         
         log(getString(R.string.number_of_threads,NUMBER_OF_THREADS));
         
@@ -197,42 +220,61 @@ public class BatteryWasterActivity extends Activity {
     }
 
     private void startWasting() {
-        if (!mWasting) {
-            log(getString(R.string.battery_waster_start));
-            registerReceiver(mReceiver, mFilter);
-            mWasting = true;
-
-            // start threads
-            for (int k=0;k<NUMBER_OF_THREADS;k++) {
-            	SpinThread sp = new SpinThread();
-            	sp.start();
-            	mThreads.add(sp);
-            }
-            
-            // start GPS
-            if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                log(getString(R.string.please_turn_gps_on));
-            }
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-            
-            // start open GL view
-            mGLView.resumeAnimation();
-        }
+    	synchronized(this) {
+	        if (!mWasting) {
+	            log(getString(R.string.battery_waster_start));
+	            registerReceiver(mReceiver, mFilter);
+	            mWasting = true;
+	
+	            // start threads
+	            for (int k=0;k<NUMBER_OF_THREADS;k++) {
+	            	SpinThread sp = new SpinThread();
+	            	sp.start();
+	            	mThreads.add(sp);
+	            }
+	            
+	            // start GPS
+	            if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+	                log(getString(R.string.please_turn_gps_on));
+	            }
+	            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+	            
+	            // start sensors
+	            for (Sensor sensor:mSensors) {
+	            	log(getString(R.string.using_sensor,sensorTypeToString(sensor.getType())));
+	                mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
+	            }
+	            
+	            // start open GL view
+	            mGLView.resumeAnimation();
+	        }
+        	mOnOffSwitch.setEnabled(true); // enable back now that it has started
+    	}
     }
 
     private void stopWasting() {
-        if (mWasting) {
-            log(getString(R.string.battery_waster_stop));
-            unregisterReceiver(mReceiver);
-            mWasting = false;
-            for (SpinThread sp:mThreads) {
-            	sp.quit();
-            }
-            mThreads.clear();
-            mLocationManager.removeUpdates(mLocationListener);
-            // stop open GL view
-            mGLView.pauseAnimation();
-        }
+    	synchronized(this) {
+	        if (mWasting) {
+	            mWasting = false;
+	            log(getString(R.string.battery_waster_stop));
+	            
+	            unregisterReceiver(mReceiver);
+	            for (SpinThread sp:mThreads) {
+	            	sp.quit();
+	            }
+	            mThreads.clear();
+	            
+	            // stop GPS
+	            mLocationManager.removeUpdates(mLocationListener);
+	
+	            // stop all sensors
+	            mSensorManager.unregisterListener(this);
+	            
+	            // stop open GL view
+	            mGLView.pauseAnimation();
+	        }
+        	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
+    	}
     }
 
     private void updateWakeLock(boolean bKeepScreenOn) {
@@ -242,4 +284,62 @@ public class BatteryWasterActivity extends Activity {
     private void log(String s) {
         mConsole.append(mDateFormat.format(new Date()) + ": " + s+"\n");
     }
+    
+    private String sensorTypeToString(int sensorType) {
+    	String stype;
+    	switch (sensorType) {
+    	case Sensor.TYPE_ACCELEROMETER:
+    		stype="ACCELEROMETER";
+    		break;
+    	case Sensor.TYPE_AMBIENT_TEMPERATURE:
+    		stype="AMBIENT_TEMPERATURE";
+    		break;
+    	case Sensor.TYPE_GRAVITY:
+    		stype="GRAVITY";
+    		break;
+    	case Sensor.TYPE_GYROSCOPE:
+    		stype="GYROSCOPE";
+    		break;
+    	case Sensor.TYPE_LIGHT:
+    		stype="LIGHT";
+    		break;
+    	case Sensor.TYPE_LINEAR_ACCELERATION:
+    		stype="LINEAR_ACCELERATION";
+    		break;
+    	case Sensor.TYPE_MAGNETIC_FIELD:
+    		stype="MAGNETIC_FIELD";
+    		break;
+    	case Sensor.TYPE_PRESSURE:
+    		stype="PRESSURE";
+    		break;
+    	case Sensor.TYPE_PROXIMITY:
+    		stype="PROXIMITY";
+    		break;
+    	case Sensor.TYPE_RELATIVE_HUMIDITY:
+    		stype="RELATIVE_HUMIDITY";
+    		break;
+    	case Sensor.TYPE_ROTATION_VECTOR:
+    		stype="ROTATION_VECTOR";
+    		break;
+    	default:
+    	case Sensor.TYPE_ALL:
+    		stype = getString(R.string.sensor_unknown_type,sensorType);
+    		break;
+    	}
+    	return stype;
+    }
+
+
+	// --------------------------------------------------------------------------------------------
+    // sensor listener interface
+	// --------------------------------------------------------------------------------------------
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// void - dismiss
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		// void - dismiss
+	}
 }
