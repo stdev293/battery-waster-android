@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stdev293.batterywasterdemo;
+package com.stdev293.batterywasterdemo.gl;
 
 
 public class Cube extends GLShape {

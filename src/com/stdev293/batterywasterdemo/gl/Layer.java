@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stdev293.batterywasterdemo;
+package com.stdev293.batterywasterdemo.gl;
 
 public class Layer {
 	
@@ -88,7 +88,7 @@ public class Layer {
 		}
 	}
 	
-	GLShape[] mShapes = new GLShape[9];
+	public GLShape[] mShapes = new GLShape[9];
 	M4 mTransform = new M4();
 //	float mAngle;
 

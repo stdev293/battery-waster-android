@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
     
     <Switch
-        android:id="@+id/switch1"
+        android:id="@+id/switch_on_off"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -15,33 +15,33 @@
         android:text="@string/battery_waster_waste_on_off" />
 
     <Switch
-        android:id="@+id/switch2"
+        android:id="@+id/switch_light"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/switch1"
+        android:layout_below="@+id/switch_on_off"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="14dp"
         android:layout_marginRight="14dp"
 	    android:layout_marginBottom="14dp"
 	    android:checked="true"
-        android:text="@string/battery_waster_keep_screen_on" />
+        android:text="@string/battery_waster_use_camera_flash" />
     
-    <com.stdev293.batterywasterdemo.CustomGLView
+    <com.stdev293.batterywasterdemo.views.CustomGLView
         android:id="@+id/glview"
         android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-	    android:layout_below="@+id/switch2"
+	    android:layout_below="@+id/switch_light"
         android:background="#ddffffff"
         />
     
     <ScrollView
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-        android:layout_below="@+id/switch2"
+        android:layout_below="@+id/switch_light"
 	    android:layout_margin="5dp"
         >
 
-        <TextView
+        <com.stdev293.batterywasterdemo.views.CustomTextView
             android:id="@+id/console"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

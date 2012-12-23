@@ -13,9 +13,16 @@
  * 
  * Derived from com.example.android.apis.graphics.kube - the Android Open Source Project
  */
-package com.stdev293.batterywasterdemo;
+package com.stdev293.batterywasterdemo.views;
 
 import java.util.Random;
+
+import com.stdev293.batterywasterdemo.gl.Cube;
+import com.stdev293.batterywasterdemo.gl.GLColor;
+import com.stdev293.batterywasterdemo.gl.GLShape;
+import com.stdev293.batterywasterdemo.gl.GLWorld;
+import com.stdev293.batterywasterdemo.gl.KubeRenderer;
+import com.stdev293.batterywasterdemo.gl.Layer;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;

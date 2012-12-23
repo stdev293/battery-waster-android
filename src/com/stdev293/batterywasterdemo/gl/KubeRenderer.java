@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stdev293.batterywasterdemo;
+package com.stdev293.batterywasterdemo.gl;
 
 import android.opengl.GLSurfaceView;
 
@@ -26,7 +26,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Example of how to use OpenGL|ES in a custom view
  *
  */
-class KubeRenderer implements GLSurfaceView.Renderer {
+public class KubeRenderer implements GLSurfaceView.Renderer {
     public interface AnimationCallback {
         void animate();
     }
