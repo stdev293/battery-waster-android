@@ -14,10 +14,9 @@
  */
 package com.stdev293.batterywasterdemo.activities;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import sinks.Sink;
-import sinks.SinkCallbackListener;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.CompoundButton;
@@ -26,6 +25,13 @@ import android.widget.Switch;
 
 import com.stdev293.batterywasterdemo.R;
 import com.stdev293.batterywasterdemo.controllers.BatteryLevelDisplayController;
+import com.stdev293.batterywasterdemo.sinks.CameraLight;
+import com.stdev293.batterywasterdemo.sinks.Cpu;
+import com.stdev293.batterywasterdemo.sinks.Gps;
+import com.stdev293.batterywasterdemo.sinks.Gpu;
+import com.stdev293.batterywasterdemo.sinks.MotionSensors;
+import com.stdev293.batterywasterdemo.sinks.Sink;
+import com.stdev293.batterywasterdemo.sinks.SinkCallbackListener;
 import com.stdev293.batterywasterdemo.views.CustomTextView;
 
 /**
@@ -40,7 +46,8 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
     private CustomTextView mConsole;
     private Switch mOnOffSwitch,mUseLightSwitch;
     private BatteryLevelDisplayController mBatteryLevelDisplayController;
-    private List<Sink> mSinks;
+    private List<Sink> mSinks; // all sinks except the flashlight
+    private Sink mLightSink;
     
     private boolean mWasting;
 
@@ -51,25 +58,35 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         	switch (buttonView.getId()) {
         	case R.id.switch_on_off:
 	            if (isChecked) {
-	            	buttonView.setEnabled(false); // disable while starting
-	            	buttonView.post(new Runnable() {
+	            	mOnOffSwitch.setEnabled(false); // disable while starting
+	            	mOnOffSwitch.post(new Runnable() {
 						@Override
 						public void run() {
 			                startWasting();
+			            	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
 						}
 	            	});
 	            } else {
-	            	buttonView.setEnabled(false); // disable while stopping
-	            	buttonView.post(new Runnable() {
+	            	mOnOffSwitch.setEnabled(false); // disable while stopping
+	            	mOnOffSwitch.post(new Runnable() {
 						@Override
 						public void run() {
 							stopWasting();
+				        	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
 						}
 	            	});
 	            }
 	            break;
         	case R.id.switch_light:
-        		// TODO
+        		mUseLightSwitch.setEnabled(false); // disable while switching
+            	final boolean fIsChecked = isChecked;
+            	mUseLightSwitch.post(new Runnable() {
+					@Override
+					public void run() {
+		        		setLightSink(fIsChecked);
+		        		mUseLightSwitch.setEnabled(true);
+					}
+            	});
             	break;
             default:
             	break;
@@ -86,6 +103,8 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.battery_waster);
+        
+        mSinks = new ArrayList<Sink>();
 
         mOnOffSwitch = (Switch) findViewById(R.id.switch_on_off);
         mUseLightSwitch = (Switch) findViewById(R.id.switch_light);
@@ -123,11 +142,21 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
 	        	mConsole.log(getString(R.string.battery_waster_start));
 	            mWasting = true;
 	            
-	            // TODO instantiate and start all sinks
+	            // instantiate sinks
+	            mSinks.add(new Gps(this));
+	            mSinks.add(new Cpu(this));
+	            mSinks.add(new Gpu(this));
+	            mSinks.add(new MotionSensors(this));
+	            mLightSink = new CameraLight(this);
 	            
-	            
+	            // start them
+	            for (Sink s:mSinks) {
+	            	s.start(this);
+	            }
+	            if (mUseLightSwitch.isChecked()) {
+	            	mLightSink.start(this);
+	            }
 	        }
-        	mOnOffSwitch.setEnabled(true); // enable back now that it has started
     	}
     }
 
@@ -137,13 +166,28 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
 	            mWasting = false;
 	            mConsole.log(getString(R.string.battery_waster_stop));
 
-	            // TODO stop all sinks
-	            
+	            // stop and destroy all sinks
+	            mLightSink.stop();
+	            mLightSink = null;
+	            for (Sink s:mSinks) {
+	            	s.stop();
+	            }
+	            mSinks.clear();
 	        }
-        	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
     	}
     }
 
+	private void setLightSink(boolean isChecked) {
+    	synchronized(this) {
+			if (mLightSink!=null) {
+				if (isChecked) {
+					mLightSink.start(this);
+				} else {
+					mLightSink.stop();				
+				}
+			}
+    	}		
+	}
 
 	// --------------------------------------------------------------------------------------------
     // Sink callback interface

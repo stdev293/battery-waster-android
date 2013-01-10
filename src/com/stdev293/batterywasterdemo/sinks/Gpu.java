@@ -12,7 +12,7 @@
  * limitations under the License.
  * 
  */
-package sinks;
+package com.stdev293.batterywasterdemo.sinks;
 
 import com.stdev293.batterywasterdemo.R;
 import com.stdev293.batterywasterdemo.views.CustomGLView;

@@ -15,7 +15,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" android:hardwareAccelerated="true">
         <activity
-            android:name="com.stdev293.batterywasterdemo.BatteryWasterActivity"
+            android:name="com.stdev293.batterywasterdemo.activities.BatteryWasterActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>

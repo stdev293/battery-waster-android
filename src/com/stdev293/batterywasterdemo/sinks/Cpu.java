@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sinks;
+package com.stdev293.batterywasterdemo.sinks;
 
 import java.util.ArrayList;
 

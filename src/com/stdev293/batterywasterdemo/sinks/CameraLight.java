@@ -12,26 +12,30 @@
  * limitations under the License.
  */
 
-package sinks;
+package com.stdev293.batterywasterdemo.sinks;
 
 import android.content.Context;
+import android.util.Log;
 
 public class CameraLight extends Sink {
 	public CameraLight(Context context) {
 		super(context);
 		// TODO
+		Log.d(this.getClass().getName(), "debug >> CameraLight() ");
 	}
 	
 	
 	@Override
 	public void startImpl() {
 		// TODO Auto-generated method stub
+		Log.d(this.getClass().getName(), "debug >> startImpl() ");
 		
 	}
 
 	@Override
 	public void stopImpl() {
 		// TODO Auto-generated method stub
+		Log.d(this.getClass().getName(), "debug >> stopImpl() ");
 		
 	}
 
