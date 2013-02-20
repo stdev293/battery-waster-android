@@ -110,7 +110,16 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         mOnOffSwitch = (Switch) findViewById(R.id.switch_on_off);
         mUseLightSwitch = (Switch) findViewById(R.id.switch_light);
         mConsole = (CustomTextView) findViewById(R.id.console);
-        mConsole.setText("--"+getString(R.string.app_name)+" v"+getString(R.string.app_version_name)+"--\n");
+
+        String appStr;
+        try {
+        	String ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        	appStr = "--"+getString(R.string.app_name)+" v"+ver+"--\n";
+        } catch (Exception e) {
+        	appStr = "--"+getString(R.string.app_name)+"--\n";
+        }
+        mConsole.setText(appStr);
+        
         mBatteryLevelDisplayController = new BatteryLevelDisplayController(this);
         mWasting = false;
 

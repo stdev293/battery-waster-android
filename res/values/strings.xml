@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Battery Waster</string>
-    <string name="app_version_name">1.2</string>
     <string name="number_of_threads">Using CPU: %d threads</string>
     <string name="battery_waster_use_camera_flash">Use camera flash light</string>
     <string name="battery_waster_waste_on_off">Waste some energy</string>
