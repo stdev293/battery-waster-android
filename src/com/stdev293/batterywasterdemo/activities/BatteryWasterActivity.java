@@ -30,6 +30,7 @@ import com.stdev293.batterywasterdemo.sinks.Cpu;
 import com.stdev293.batterywasterdemo.sinks.Gps;
 import com.stdev293.batterywasterdemo.sinks.Gpu;
 import com.stdev293.batterywasterdemo.sinks.MotionSensors;
+import com.stdev293.batterywasterdemo.sinks.ScreenBrightness;
 import com.stdev293.batterywasterdemo.sinks.Sink;
 import com.stdev293.batterywasterdemo.sinks.SinkCallbackListener;
 import com.stdev293.batterywasterdemo.views.CustomTextView;
@@ -143,6 +144,7 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
 	            mWasting = true;
 	            
 	            // instantiate sinks
+	            mSinks.add(new ScreenBrightness(this));
 	            mSinks.add(new Gps(this));
 	            mSinks.add(new Cpu(this));
 	            mSinks.add(new Gpu(this));

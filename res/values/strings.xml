@@ -2,16 +2,17 @@
 <resources>
 
     <string name="app_name">Battery Waster</string>
-    <string name="app_version_name">1.1</string>
-    <string name="number_of_threads">using %d threads</string>
+    <string name="app_version_name">1.2</string>
+    <string name="number_of_threads">Using CPU: %d threads</string>
     <string name="battery_waster_use_camera_flash">Use camera flash light</string>
     <string name="battery_waster_waste_on_off">Waste some energy</string>
-    <string name="battery_waster_start">Start</string>
-    <string name="battery_waster_stop">Stop</string>
+    <string name="battery_waster_start">Starting</string>
+    <string name="battery_waster_stop">Stopped</string>
     <string name="using_sensor">Using sensor: %s</string>    
     <string name="sensor_unknown_type">unknown (type %d)</string>
     <string name="level">level</string>
     <string name="please_turn_gps_on">Please turn on GPS to use more battery</string>
     <string name="thank_you_gps">Thanks you for turning GPS on! It does warm my heart.</string>
-
+	<string name="torch_on">Turning torch on</string>
+    <string name="torch_feature_not_supported">The torchlight feature appears to be unavailable on this device</string>
 </resources>
