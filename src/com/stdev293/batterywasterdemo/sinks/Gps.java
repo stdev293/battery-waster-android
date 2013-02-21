@@ -42,7 +42,7 @@ public class Gps extends Sink {
 
 		@Override
 		public void onProviderEnabled(String provider) {
-			notifyStatusChange(getContext().getString(R.string.please_turn_gps_on));
+			notifyStatusChange(getContext().getString(R.string.thank_you_gps));
 		}
 
 		@Override
