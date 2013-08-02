@@ -29,7 +29,7 @@ import com.stdev293.batterywasterdemo.R;
  */
 public class CameraLight extends Sink {
 	private boolean isFeatureSupported;
-	private Camera mCamera;
+	private Camera mCamera = null;
 	
 	public CameraLight(Context context) {
 		super(context);
@@ -43,10 +43,25 @@ public class CameraLight extends Sink {
 	
 	@Override
 	public void startImpl() {
+		// try to open the camera
+		if (isFeatureSupported) {
+			mCamera = null;
+			try {
+				mCamera = Camera.open();
+			} catch (RuntimeException e) {
+				// this has happened on device "OTHER" (!!)
+				e.printStackTrace();
+			}
+			if (mCamera==null) {
+				// can't open camera: do not try anymore (can cause crash)
+				isFeatureSupported = false;
+			}
+		}
+		
+		// all good, camera object is ready at this stage if the boolean is still true
 		if (isFeatureSupported) {
 			// turn on the light
 			notifyStatusChange(getContext().getString(R.string.torch_on));
-			mCamera = Camera.open();    
 			Parameters p = mCamera.getParameters();
 			p.setFlashMode(Parameters.FLASH_MODE_TORCH);
 			mCamera.setParameters(p);

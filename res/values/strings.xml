@@ -12,6 +12,7 @@
     <string name="level">level</string>
     <string name="please_turn_gps_on">Please turn on GPS to use more battery</string>
     <string name="thank_you_gps">Thanks you for turning GPS on! It does warm my heart.</string>
+    <string name="gps_not_supported">GPS appears to be unavailable on this device</string>
 	<string name="torch_on">Turning torch on</string>
     <string name="torch_feature_not_supported">The torchlight feature appears to be unavailable on this device</string>
 </resources>

@@ -14,6 +14,7 @@
 package com.stdev293.batterywasterdemo.sinks;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,8 +25,8 @@ import com.stdev293.batterywasterdemo.R;
 public class Gps extends Sink {
     private LocationManager mLocationManager;
     private LocationCallbackHandler mLocationListener;
+    private boolean isFeatureSupported = false;
     
-
 	// --------------------------------------------------------------------------------------------
     // inner classes    
 	// --------------------------------------------------------------------------------------------
@@ -56,25 +57,34 @@ public class Gps extends Sink {
 	// --------------------------------------------------------------------------------------------	
 	public Gps(Context context) {
 		super(context);
-        
-        mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        mLocationListener = new LocationCallbackHandler();
+
+		isFeatureSupported = context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+
+		if (isFeatureSupported) {
+			mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+	        mLocationListener = new LocationCallbackHandler();
+		}
 	}
 
 	@Override
 	public void startImpl() {
-        // start GPS
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-        	notifyStatusChange(getContext().getString(R.string.please_turn_gps_on));
-        }
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-		
+		if (isFeatureSupported) {
+			// start GPS
+			if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+				notifyStatusChange(getContext().getString(R.string.please_turn_gps_on));
+			}
+			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+		} else {
+			notifyStatusChange(getContext().getString(R.string.gps_not_supported));
+		}
 	}
 
 	@Override
 	public void stopImpl() {
-        // stop GPS
-        mLocationManager.removeUpdates(mLocationListener);
+		if (isFeatureSupported) {
+			// stop GPS
+			mLocationManager.removeUpdates(mLocationListener);
+		}
 	}
 
 }
