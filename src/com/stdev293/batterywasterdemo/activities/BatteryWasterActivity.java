@@ -160,20 +160,20 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
 	            mWasting = true;
 	        	log(getString(R.string.battery_waster_starting));
 	            
-	            // instantiate sinks
+	            // instantiate sinks, CPU at the end
+	            mLightSink = new CameraLight(this);
 	            mSinks.add(new ScreenBrightness(this));
 	            mSinks.add(new Gps(this));
-	            mSinks.add(new Cpu(this));
 	            mSinks.add(new Gpu(this));
 	            mSinks.add(new MotionSensors(this));
-	            mLightSink = new CameraLight(this);
+	            mSinks.add(new Cpu(this));
 	            
 	            // start them
-	            for (Sink s:mSinks) {
-	            	s.start(this);
-	            }
 	            if (mUseLightSwitch.isChecked()) {
 	            	mLightSink.start(this);
+	            }
+	            for (Sink s:mSinks) {
+	            	s.start(this);
 	            }
 	        	log(getString(R.string.battery_waster_started));
 	        }
@@ -198,13 +198,17 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
 	            mWasting = false;
 	            log(getString(R.string.battery_waster_stopping));
 
-	            // stop and destroy all sinks
+	            // stop and destroy all sinks	            
+	            // start by CPU (last one) to speed up the process
+	            for (int k=mSinks.size()-1;k>=0;k--) {
+		        	mSinks.get(k).stop();
+	            }
+	            
 	            mLightSink.stop();
 	            mLightSink = null;
-	            for (Sink s:mSinks) {
-	            	s.stop();
-	            }
+	            
 	            mSinks.clear();
+	            
 	            log(getString(R.string.battery_waster_stopped));
 	        }
     	}

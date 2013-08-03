@@ -23,22 +23,15 @@ public class Cpu extends Sink {
 	public static final int NUMBER_OF_THREADS = 8;
 
     private ArrayList<SpinThread> mThreads;
+    private boolean mStop;
     
     /** Endless loop, no sleep for you */
 	private class SpinThread extends Thread {
-        private boolean mStop;
-
-        public void quit() {
-            synchronized (this) {mStop = true;}
-        }
-
         public void run() {
         	this.setPriority(MIN_PRIORITY);
             while (true) {
-                synchronized (this) {
-                    if (mStop) {
-                        return;
-                    }
+                if (mStop) {
+                    return;
                 }
             }
         }
@@ -63,12 +56,8 @@ public class Cpu extends Sink {
 
 	@Override
 	public void stopImpl() {
-        for (SpinThread sp:mThreads) {
-        	sp.quit();
-        }
-        mThreads.clear();
-        
-
+		mStop = true;
+        mThreads.clear();     
 	}
 
 }
