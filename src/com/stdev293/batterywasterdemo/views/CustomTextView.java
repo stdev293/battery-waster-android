@@ -46,7 +46,12 @@ public class CustomTextView extends TextView {
 	}
 
 
-    public void log(String s) {
-        this.append(mDateFormat.format(new Date()) + ": " + s+"\n");
+    public void log(final String str) {
+    	this.post(new Runnable() {
+			@Override
+			public void run() {
+		        append(mDateFormat.format(new Date()) + ": " + str+"\n");				
+			}    		
+    	});
     }
 }

@@ -19,6 +19,9 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
@@ -49,8 +52,62 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
     private BatteryLevelDisplayController mBatteryLevelDisplayController;
     private List<Sink> mSinks; // all sinks except the flashlight
     private Sink mLightSink;
+    private ActionThread mActionThread;
     
     private boolean mWasting;
+    
+    private class ActionThread extends Thread {
+    	public static final int ACTION_START_ALL = 0;
+    	public static final int ACTION_STOP_ALL = 1;
+    	public static final int ACTION_LIGHT_ON = 2;
+    	public static final int ACTION_LIGHT_OFF = 3;
+    	
+    	private Handler mHandler;
+    	
+    	public void sendMessage(int what) {
+    		mHandler.sendEmptyMessage(what);
+    	}
+
+    	public void run() {
+	    	Looper.prepare();
+	
+	    	mHandler = new Handler() {
+	    		public void handleMessage(Message msg) {
+		    		// process incoming messages
+		    		switch (msg.what) {
+					case ACTION_START_ALL:
+						startWasting();
+						enableSwitchInUIThread(mOnOffSwitch);
+						break;
+					case ACTION_LIGHT_ON:
+						startLight();
+						enableSwitchInUIThread(mUseLightSwitch);
+						break;
+					case ACTION_LIGHT_OFF:
+						stopLight();
+						enableSwitchInUIThread(mUseLightSwitch);
+						break;
+					case ACTION_STOP_ALL:
+					default:
+						stopWasting();
+						enableSwitchInUIThread(mOnOffSwitch);
+						break;	    		
+		    		}
+		    	}
+	    		
+	    		private void enableSwitchInUIThread(final Switch s) {
+	    			s.post(new Runnable() {
+						@Override
+						public void run() {
+							s.setEnabled(true);
+						}	    				
+	    			});
+	    		}
+	    	};
+	
+	    	Looper.loop();
+    	}
+    } // end of ActionThread definition
 
 
     private OnCheckedChangeListener mOnCheckedChangedListener = new OnCheckedChangeListener() {
@@ -60,34 +117,19 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         	case R.id.switch_on_off:
 	            if (isChecked) {
 	            	mOnOffSwitch.setEnabled(false); // disable while starting
-	            	mOnOffSwitch.post(new Runnable() {
-						@Override
-						public void run() {
-			                startWasting();
-			            	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
-						}
-	            	});
+	            	mActionThread.sendMessage(ActionThread.ACTION_START_ALL);
 	            } else {
 	            	mOnOffSwitch.setEnabled(false); // disable while stopping
-	            	mOnOffSwitch.post(new Runnable() {
-						@Override
-						public void run() {
-							stopWasting();
-				        	mOnOffSwitch.setEnabled(true); // enable back now that it has stopped
-						}
-	            	});
+	            	mActionThread.sendMessage(ActionThread.ACTION_STOP_ALL);
 	            }
 	            break;
         	case R.id.switch_light:
         		mUseLightSwitch.setEnabled(false); // disable while switching
-            	final boolean fIsChecked = isChecked;
-            	mUseLightSwitch.post(new Runnable() {
-					@Override
-					public void run() {
-		        		setLightSink(fIsChecked);
-		        		mUseLightSwitch.setEnabled(true);
-					}
-            	});
+            	if (isChecked) {
+	            	mActionThread.sendMessage(ActionThread.ACTION_LIGHT_ON);
+            	} else {
+	            	mActionThread.sendMessage(ActionThread.ACTION_LIGHT_OFF);
+            	}
             	break;
             default:
             	break;
@@ -121,6 +163,8 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         mConsole.setText(appStr);
         
         mBatteryLevelDisplayController = new BatteryLevelDisplayController(this);
+        mActionThread = new ActionThread();
+        mActionThread.start();
         mWasting = false;
 
         mOnOffSwitch.setOnCheckedChangeListener(mOnCheckedChangedListener);
@@ -144,6 +188,11 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
         stopWasting();
     	mBatteryLevelDisplayController.stopMonitoring();
         super.onPause();
+    }
+    
+    @Override
+    public void onDestroy() {
+    	super.onDestroy();
     }
 
     private void startWasting() {
@@ -171,6 +220,18 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
     	}
     }
 
+    private void startLight() {
+    	if (mLightSink!=null) {
+    		mLightSink.start(this);
+    	}
+    }
+
+    private void stopLight() {
+    	if (mLightSink!=null) {
+    		mLightSink.stop();
+    	}
+    }
+    
     private void stopWasting() {
     	synchronized(this) {
 	        if (mWasting) {
@@ -188,25 +249,13 @@ public class BatteryWasterActivity extends Activity implements SinkCallbackListe
     	}
     }
 
-	private void setLightSink(boolean isChecked) {
-    	synchronized(this) {
-			if (mLightSink!=null) {
-				if (isChecked) {
-					mLightSink.start(this);
-				} else {
-					mLightSink.stop();				
-				}
-			}
-    	}		
-	}
-
 	// --------------------------------------------------------------------------------------------
     // Sink callback interface
 	// --------------------------------------------------------------------------------------------
 	@Override
 	public void onStatusChange(String statusInfo) {
 		if (mConsole!=null) {
-			mConsole.log(statusInfo);	
+			mConsole.log(statusInfo);
 		}
 	}
 }

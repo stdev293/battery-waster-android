@@ -15,23 +15,33 @@ package com.stdev293.batterywasterdemo.sinks;
 
 import java.util.List;
 
-import com.stdev293.batterywasterdemo.R;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
+import android.util.SparseArray;
+
+import com.stdev293.batterywasterdemo.R;
 
 public class MotionSensors extends Sink implements SensorEventListener {
     private SensorManager mSensorManager;
     private List<Sensor> mSensors;
+    private static SparseArray<String> SENSORS_NAME = new SparseArray<String>(20);
 
 	public MotionSensors(Context c) {
 		super(c);
         
         mSensorManager = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
         mSensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+
+    	if (SENSORS_NAME.size()==0) {
+    		synchronized(SENSORS_NAME) {
+    			initializeSensorNames();
+    		}
+    	}
 	}
 
 	@Override
@@ -49,50 +59,41 @@ public class MotionSensors extends Sink implements SensorEventListener {
         // stop all sensors
         mSensorManager.unregisterListener(this);
 	}
+	
+	private String sensorTypeToString(int sensorType) {
+    	String stype = SENSORS_NAME.get(sensorType);
+    	if (stype==null) {
+    		stype = getContext().getString(R.string.sensor_unknown_type, sensorType);    		
+    	}
+    	
+    	return stype;
+    }
 
     
-    private String sensorTypeToString(int sensorType) {
-    	String stype;
-    	switch (sensorType) {
-    	case Sensor.TYPE_ACCELEROMETER:
-    		stype="ACCELEROMETER";
-    		break;
-    	case Sensor.TYPE_AMBIENT_TEMPERATURE:
-    		stype="AMBIENT_TEMPERATURE";
-    		break;
-    	case Sensor.TYPE_GRAVITY:
-    		stype="GRAVITY";
-    		break;
-    	case Sensor.TYPE_GYROSCOPE:
-    		stype="GYROSCOPE";
-    		break;
-    	case Sensor.TYPE_LIGHT:
-    		stype="LIGHT";
-    		break;
-    	case Sensor.TYPE_LINEAR_ACCELERATION:
-    		stype="LINEAR_ACCELERATION";
-    		break;
-    	case Sensor.TYPE_MAGNETIC_FIELD:
-    		stype="MAGNETIC_FIELD";
-    		break;
-    	case Sensor.TYPE_PRESSURE:
-    		stype="PRESSURE";
-    		break;
-    	case Sensor.TYPE_PROXIMITY:
-    		stype="PROXIMITY";
-    		break;
-    	case Sensor.TYPE_RELATIVE_HUMIDITY:
-    		stype="RELATIVE_HUMIDITY";
-    		break;
-    	case Sensor.TYPE_ROTATION_VECTOR:
-    		stype="ROTATION_VECTOR";
-    		break;
-    	default:
-    	case Sensor.TYPE_ALL:
-    		stype = getContext().getString(R.string.sensor_unknown_type,sensorType);
-    		break;
-    	}
-    	return stype;
+    @SuppressLint("InlinedApi")
+	@SuppressWarnings("deprecation")
+    private static void initializeSensorNames() {
+		SENSORS_NAME.append(Sensor.TYPE_ACCELEROMETER, "ACCELEROMETER");
+		SENSORS_NAME.append(Sensor.TYPE_MAGNETIC_FIELD, "MAGNETIC_FIELD");
+		SENSORS_NAME.append(Sensor.TYPE_ORIENTATION, "ORIENTATION");
+		SENSORS_NAME.append(Sensor.TYPE_GYROSCOPE, "GYROSCOPE");
+		SENSORS_NAME.append(Sensor.TYPE_LIGHT, "LIGHT");
+		SENSORS_NAME.append(Sensor.TYPE_PRESSURE, "PRESSURE");
+		SENSORS_NAME.append(Sensor.TYPE_TEMPERATURE, "TEMPERATURE");
+		SENSORS_NAME.append(Sensor.TYPE_PROXIMITY, "PROXIMITY");
+		SENSORS_NAME.append(Sensor.TYPE_GRAVITY, "GRAVITY");
+		SENSORS_NAME.append(Sensor.TYPE_LINEAR_ACCELERATION, "ACCELEROMETER");
+		SENSORS_NAME.append(Sensor.TYPE_ACCELEROMETER, "LINEAR_ACCELERATION");
+		SENSORS_NAME.append(Sensor.TYPE_ROTATION_VECTOR, "ROTATION_VECTOR");
+		SENSORS_NAME.append(Sensor.TYPE_RELATIVE_HUMIDITY, "RELATIVE_HUMIDITY");
+		SENSORS_NAME.append(Sensor.TYPE_AMBIENT_TEMPERATURE, "AMBIENT_TEMPERATURE");
+		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN_MR2) {
+			// only in API 18+
+			SENSORS_NAME.append(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED, "MAGNETIC_FIELD_UNCALIBRATED");
+			SENSORS_NAME.append(Sensor.TYPE_GAME_ROTATION_VECTOR, "GAME_ROTATION_VECTOR");
+			SENSORS_NAME.append(Sensor.TYPE_GYROSCOPE_UNCALIBRATED, "GYROSCOPE_UNCALIBRATED");
+			SENSORS_NAME.append(Sensor.TYPE_SIGNIFICANT_MOTION, "SIGNIFICANT_MOTION");
+		}
     }
 
 

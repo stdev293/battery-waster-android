@@ -24,9 +24,11 @@ import android.view.WindowManager;
  */
 public class ScreenBrightness extends Sink {
 	private Window mCurrentWindow;
+	private Activity mActivity;
 
 	public ScreenBrightness(Activity activity) {
 		super(activity);
+		mActivity = activity;
 		mCurrentWindow = activity.getWindow();
 	}
 
@@ -35,17 +37,27 @@ public class ScreenBrightness extends Sink {
 	 */
 	@Override
 	protected void startImpl() {
-		WindowManager.LayoutParams layoutParams = mCurrentWindow.getAttributes();
-		layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
-		mCurrentWindow.setAttributes(layoutParams);
+		mActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				WindowManager.LayoutParams layoutParams = mCurrentWindow.getAttributes();
+				layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
+				mCurrentWindow.setAttributes(layoutParams);				
+			}
+		});
 		
 	}
 
 	@Override
 	protected void stopImpl() {
-		WindowManager.LayoutParams layoutParams = mCurrentWindow.getAttributes();
-		layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
-		mCurrentWindow.setAttributes(layoutParams);		
+		mActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				WindowManager.LayoutParams layoutParams = mCurrentWindow.getAttributes();
+				layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+				mCurrentWindow.setAttributes(layoutParams);
+			}
+		});
 	}
 
 }
