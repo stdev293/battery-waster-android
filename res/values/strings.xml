@@ -5,8 +5,10 @@
     <string name="number_of_threads">Using CPU: %d threads</string>
     <string name="battery_waster_use_camera_flash">Use camera flash light</string>
     <string name="battery_waster_waste_on_off">Waste some energy</string>
-    <string name="battery_waster_start">Starting</string>
-    <string name="battery_waster_stop">Stopped</string>
+    <string name="battery_waster_starting">Starting&#8230;</string>
+    <string name="battery_waster_started">Started.</string>
+    <string name="battery_waster_stopping">Stopping&#8230;</string>
+    <string name="battery_waster_stopped">Stopped.</string>
     <string name="using_sensor">Using sensor: %s</string>
     <string name="sensor_unknown_type">unknown (type %d)</string>
     <string name="level">level</string>

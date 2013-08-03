@@ -69,5 +69,7 @@ public class BatteryLevelDisplayController extends BroadcastReceiver {
         	mTextView.log(title);
         }
     }
+    
+    
 
 }

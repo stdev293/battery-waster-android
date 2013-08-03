@@ -46,6 +46,10 @@ public class CustomTextView extends TextView {
 	}
 
 
+	/**
+	 * Appends the string as a new line into console window. Can be called from any thread.
+	 * @param str string to append
+	 */
     public void log(final String str) {
     	this.post(new Runnable() {
 			@Override
