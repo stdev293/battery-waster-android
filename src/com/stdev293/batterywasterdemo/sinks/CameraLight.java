@@ -43,7 +43,7 @@ public class CameraLight extends Sink {
 	
 	@Override
 	public void startImpl() {
-		// try to open the camera
+		// try to open the default (back-facing) camera
 		if (isFeatureSupported) {
 			mCamera = null;
 			try {
@@ -58,18 +58,25 @@ public class CameraLight extends Sink {
 			}
 		}
 		
-		// all good, camera object is ready at this stage if the boolean is still true
+		// check that this flash mode is supported
+		Parameters cameraParams = null;
 		if (isFeatureSupported) {
+			cameraParams = mCamera.getParameters();
+			if (!cameraParams.getSupportedFlashModes().contains(Parameters.FLASH_MODE_TORCH)) {
+				isFeatureSupported = false;				
+			}
+		}
+		
+		// all good, camera object is ready at this stage if the boolean is still true
+		if (isFeatureSupported && (cameraParams!= null)) {
 			// turn on the light
 			notifyStatusChange(getContext().getString(R.string.torch_on));
-			Parameters p = mCamera.getParameters();
-			p.setFlashMode(Parameters.FLASH_MODE_TORCH);
-			mCamera.setParameters(p);
+			cameraParams.setFlashMode(Parameters.FLASH_MODE_TORCH);
+			mCamera.setParameters(cameraParams);
 		} else {
 			// just tell the user
 			notifyStatusChange(getContext().getString(R.string.torch_feature_not_supported));
 		}
-		
 	}
 
 	@Override

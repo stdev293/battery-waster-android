@@ -73,8 +73,17 @@ public class Gps extends Sink {
 			if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 				notifyStatusChange(getContext().getString(R.string.please_turn_gps_on));
 			}
-			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-		} else {
+			
+			try {
+				mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+			} catch (Exception e) {
+				// uncommon exception on some devices
+				e.printStackTrace();
+				isFeatureSupported = false;
+			}
+		}
+
+		if (!isFeatureSupported) {
 			notifyStatusChange(getContext().getString(R.string.gps_not_supported));
 		}
 	}
