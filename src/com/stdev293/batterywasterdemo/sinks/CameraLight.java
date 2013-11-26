@@ -14,10 +14,14 @@
 
 package com.stdev293.batterywasterdemo.sinks;
 
-import android.content.Context;
+import java.io.IOException;
+
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.util.Log;
+import android.view.SurfaceView;
 
 import com.stdev293.batterywasterdemo.R;
 
@@ -30,14 +34,17 @@ import com.stdev293.batterywasterdemo.R;
 public class CameraLight extends Sink {
 	private boolean isFeatureSupported;
 	private Camera mCamera = null;
+    private SurfaceView mSurfaceView;
 	
-	public CameraLight(Context context) {
-		super(context);
+	public CameraLight(Activity activityContext) {
+		super(activityContext);
+		
+        mSurfaceView = (SurfaceView) activityContext.findViewById(R.id.surfaceView);
 		
 		// check that the device supports this feature
 		isFeatureSupported = 
-				context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
-				context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+				activityContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) &&
+				activityContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 	}
 	
 	
@@ -48,8 +55,13 @@ public class CameraLight extends Sink {
 			mCamera = null;
 			try {
 				mCamera = Camera.open();
+				mCamera.setPreviewDisplay(mSurfaceView.getHolder());
 			} catch (RuntimeException e) {
 				// this has happened on device "OTHER" (!!)
+				Log.e(this.getClass().getName(),"Cannot open Camera device: "+e.getMessage());
+				e.printStackTrace();
+			} catch (IOException e) {
+				Log.e(this.getClass().getName(),"Cannot set preview display: "+e.getMessage());
 				e.printStackTrace();
 			}
 			if (mCamera==null) {
@@ -73,6 +85,7 @@ public class CameraLight extends Sink {
 			notifyStatusChange(getContext().getString(R.string.torch_on));
 			cameraParams.setFlashMode(Parameters.FLASH_MODE_TORCH);
 			mCamera.setParameters(cameraParams);
+			mCamera.startPreview();
 		} else {
 			// just tell the user
 			notifyStatusChange(getContext().getString(R.string.torch_feature_not_supported));
@@ -83,6 +96,7 @@ public class CameraLight extends Sink {
 	public void stopImpl() {
 		// turn off		
 		if (mCamera!=null) {
+			mCamera.stopPreview();
 			Parameters p = mCamera.getParameters();
 			p.setFlashMode(Parameters.FLASH_MODE_OFF);
 			mCamera.release();

@@ -26,11 +26,19 @@
 	    android:checked="true"
         android:text="@string/battery_waster_use_camera_flash" />
     
+    <SurfaceView 
+        android:id="@+id/surfaceView"
+        android:layout_width="match_parent"
+	    android:layout_height="1px"
+	    android:layout_below="@+id/switch_light"
+        android:background="#ddffffff"
+        />
+    
     <com.stdev293.batterywasterdemo.views.CustomGLView
         android:id="@+id/glview"
         android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-	    android:layout_below="@+id/switch_light"
+	    android:layout_below="@+id/surfaceView"
         android:background="#ddffffff"
         />
     
