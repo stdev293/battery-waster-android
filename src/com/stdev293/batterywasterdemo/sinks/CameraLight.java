@@ -33,6 +33,7 @@ import com.stdev293.batterywasterdemo.R;
  */
 public class CameraLight extends Sink {
 	private boolean isFeatureSupported;
+	private boolean isFeatureStarted;
 	private Camera mCamera = null;
     private SurfaceView mSurfaceView;
 	
@@ -76,8 +77,10 @@ public class CameraLight extends Sink {
 			cameraParams = mCamera.getParameters();
 			
 			if (cameraParams==null) {
+				Log.w(this.getClass().getName(),"Cannot access Camera parameters");
 				isFeatureSupported = false;				
 			} else if (!cameraParams.getSupportedFlashModes().contains(Parameters.FLASH_MODE_TORCH)) {
+				Log.w(this.getClass().getName(),"This device does not seem to support FLASH_MODE_TORCH");
 				isFeatureSupported = false;				
 			}
 		}
@@ -85,12 +88,23 @@ public class CameraLight extends Sink {
 		// all good, camera object is ready at this stage if the boolean is still true
 		if (isFeatureSupported) {
 			// turn on the light
-			notifyStatusChange(getContext().getString(R.string.torch_on));
 			cameraParams.setFlashMode(Parameters.FLASH_MODE_TORCH);
 			mCamera.setParameters(cameraParams);
-			mCamera.startPreview();
-		} else {
-			// just tell the user
+			try {
+				// native crash reported from accessing mCamera.startPreview() on some devices
+				mCamera.startPreview();
+				isFeatureStarted = true;
+			} catch (RuntimeException e) {
+				Log.e(this.getClass().getName(),"Failed to turn on the LED flash light: "+e.getMessage());
+				e.printStackTrace();
+				isFeatureSupported = false;					
+			}
+		}
+
+		// report status to the user
+		if (isFeatureSupported) {
+			notifyStatusChange(getContext().getString(R.string.torch_on));			
+		} else {			
 			notifyStatusChange(getContext().getString(R.string.torch_feature_not_supported));
 		}
 	}
@@ -98,12 +112,19 @@ public class CameraLight extends Sink {
 	@Override
 	public void stopImpl() {
 		// turn off		
-		if (mCamera!=null) {
+		if (isFeatureStarted && mCamera!=null) {
 			mCamera.stopPreview();
-			Parameters p = mCamera.getParameters();
-			p.setFlashMode(Parameters.FLASH_MODE_OFF);
+			try {
+				Parameters p = mCamera.getParameters();
+				p.setFlashMode(Parameters.FLASH_MODE_OFF);
+			} catch (RuntimeException e) {
+				// native crash reported from accessing mCamera.getParameters() on some devices -- just ignore.
+				Log.e(this.getClass().getName(),"Failed to set FLASH_MODE_OFF in Camera parameters: "+e.getMessage());
+				e.printStackTrace();
+			}
 			mCamera.release();
 		}
+		isFeatureStarted = false;
 		mCamera = null;
 	}
 
