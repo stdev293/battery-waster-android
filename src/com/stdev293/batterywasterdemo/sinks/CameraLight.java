@@ -20,6 +20,8 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -36,6 +38,8 @@ public class CameraLight extends Sink {
 	private boolean isFeatureStarted;
 	private Camera mCamera = null;
     private SurfaceView mSurfaceView;
+    private HandlerThread mHandlerThread;
+    private Handler mHandler;
 	
 	public CameraLight(Activity activityContext) {
 		super(activityContext);
@@ -48,9 +52,28 @@ public class CameraLight extends Sink {
 				activityContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 	}
 	
+	private void initThreadIfNeeded() {
+		if (mHandlerThread == null) {
+			mHandlerThread = new HandlerThread(this.getClass().getSimpleName());
+			mHandlerThread.start();
+			mHandler = new Handler(mHandlerThread.getLooper());
+		}		
+	}
+	
 	
 	@Override
 	public void startImpl() {
+		initThreadIfNeeded();
+		
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				startInThread();
+			}			
+		});		
+	}
+	
+	private void startInThread() {
 		// try to open the default (back-facing) camera
 		if (isFeatureSupported) {
 			mCamera = null;
@@ -111,6 +134,17 @@ public class CameraLight extends Sink {
 
 	@Override
 	public void stopImpl() {
+		initThreadIfNeeded();
+		
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				stopInThread();
+			}			
+		});
+	}
+	
+	private void stopInThread() {		
 		// turn off		
 		if (isFeatureStarted && mCamera!=null) {
 			mCamera.stopPreview();
