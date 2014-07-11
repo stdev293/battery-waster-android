@@ -74,13 +74,16 @@ public class CameraLight extends Sink {
 		Parameters cameraParams = null;
 		if (isFeatureSupported) {
 			cameraParams = mCamera.getParameters();
-			if (!cameraParams.getSupportedFlashModes().contains(Parameters.FLASH_MODE_TORCH)) {
+			
+			if (cameraParams==null) {
+				isFeatureSupported = false;				
+			} else if (!cameraParams.getSupportedFlashModes().contains(Parameters.FLASH_MODE_TORCH)) {
 				isFeatureSupported = false;				
 			}
 		}
 		
 		// all good, camera object is ready at this stage if the boolean is still true
-		if (isFeatureSupported && (cameraParams!= null)) {
+		if (isFeatureSupported) {
 			// turn on the light
 			notifyStatusChange(getContext().getString(R.string.torch_on));
 			cameraParams.setFlashMode(Parameters.FLASH_MODE_TORCH);
